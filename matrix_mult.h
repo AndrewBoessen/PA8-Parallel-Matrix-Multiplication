@@ -24,6 +24,8 @@ void init_matrix(double * matrix, int dim);
 
 void multiply_serial(double * a, double * b, double * c, int dim);
 
+void print_matrix(double * matrix, int dim);
+
 int verify(double * m1, double * m2, int dim);
 
 void print_elapsed_time(struct timeval * start, struct timeval * end, char * legend);
