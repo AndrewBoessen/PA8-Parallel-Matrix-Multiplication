@@ -111,3 +111,34 @@ void multiply_parallel_processes(double *a, double *b, double *c, int dim, int n
     }
 }
 
+/* Timing and Printing Results */
+struct timeval time_diff(struct timeval *start, struct timeval *end) {
+    struct timeval result;
+    result.tv_sec = end->tv_sec - start->tv_sec;
+    result.tv_usec = end->tv_usec - start->tv_usec;
+
+    // Adjust if the microseconds are negative
+    if (result.tv_usec < 0) {
+        result.tv_sec--;
+        result.tv_usec += 1000000;
+    }
+
+    return result;
+}
+
+void print_elapsed_time(struct timeval *start, struct timeval *end, char * legend) {
+    struct timeval elapsed = time_diff(start, end);
+    printf("%s: %ld second%s, %ld microsecond%s\n",
+           legend,
+           (long)elapsed.tv_sec, (elapsed.tv_sec == 1) ? "" : "s",
+           (long)elapsed.tv_usec, (elapsed.tv_usec == 1) ? "" : "s");
+}
+
+void print_verification(double *m1, double *m2, int dim, char * name) {
+    int result = verify(m1, m2, dim);
+    if (result == SUCCESS) {
+        printf("%s: Verification Passed\n", name);
+    } else {
+        printf("%s: Verification Failed\n", name);
+    }
+}

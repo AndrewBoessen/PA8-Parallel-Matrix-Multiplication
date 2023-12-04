@@ -18,6 +18,7 @@ typedef struct RunArgs {
     const bool verify;
 } RunArgs;
 
+struct timeval start, end;
 
 int main() {
     int size = DIM * DIM;
@@ -34,17 +35,22 @@ int main() {
     puts("\nMatrix B");
     print_matrix(matrix_b, DIM);
 
+    gettimeofday(&start, NULL);
     multiply_serial(matrix_a, matrix_b, matrix_c, DIM);
+    gettimeofday(&end, NULL);
+    print_elapsed_time(&start, &end, "Serial");
 
     puts("\nResult");
+    gettimeofday(&start, NULL);
     print_matrix(matrix_c, DIM);
+    gettimeofday(&end, NULL);
+    print_elapsed_time(&start, &end, "Multiprocessing");
 
     multiply_parallel_processes(matrix_a, matrix_b, matrix_d, DIM, NUM_WORKERS);
     puts("\nResult: Multiprocessing");
     print_matrix(matrix_d, DIM);
 
-    printf("\nVerification: %s\n", verify(matrix_c, matrix_d, DIM) == 0 ? "SUCCESS" : "FAILURE");
-
+    print_verification(matrix_c, matrix_d, DIM, "Multiprocessing");
     return EXIT_SUCCESS;
 }
 
