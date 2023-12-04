@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -19,6 +20,7 @@ void matmul(double *a, double *b, double * result, int start, int n, int m) {
 
     for (int i = start; i < n; i++) {
         for (int j = 0; j < m; j++) {
+            result[i * m + j] = 0.0;
             for (int k = 0; k < m; k++) {
                 result[i * m + j] += a[i * m + k] * b[k * m + j];
             }
@@ -82,33 +84,67 @@ void multiply_chunk(double *a, double *b, double *c, int dim, int row_start, int
     matmul(a, b, c, row_start, row_start + chunk_size, dim);
 }
 
+void mmap_checked(void **addr, size_t length, int prot, int flags, int fd, off_t offset) {
+    *addr = mmap(NULL, length, prot, flags, fd, offset);
+    if (*addr == MAP_FAILED) {
+        perror("mmap");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void munmap_checked(void *addr, size_t length) {
+    if (munmap(addr, length) == -1) {
+        perror("munmap");
+        exit(EXIT_FAILURE);
+    }
+}
+
+pid_t fork_checked(void) {
+    pid_t pid = fork();
+    if (pid == -1) {
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+    return pid;
+}
+
 void multiply_parallel_processes(double *a, double *b, double *c, int dim, int num_workers) {
     int chunk_size = dim / num_workers;
     int row_start = 0;
+    size_t matrix_size = dim * dim * sizeof(double);
+
+    // Memory map for the result matrix
+    double *result_matrix;
+    mmap_checked((void **)&result_matrix, matrix_size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
     // Spawn child processes
     for (int i = 0; i < num_workers - 1; ++i) {
-        pid_t pid = fork();
+        pid_t pid = fork_checked();
 
-        if (pid == -1) {
-            perror("fork");
-            exit(EXIT_FAILURE);
-        } else if (pid == 0) {
+        if (pid == 0) {
             // Child process
             row_start += chunk_size;
-            multiply_chunk(a, b, c, dim, row_start, chunk_size);
+            multiply_chunk(a, b, result_matrix, dim, row_start, chunk_size);
             exit(EXIT_SUCCESS);
         }
     }
 
     // Parent process
-    multiply_chunk(a, b, c, dim, row_start, dim - row_start);
+    multiply_chunk(a, b, result_matrix, dim, row_start, dim - row_start);
 
     // Wait for all child processes to finish
     pid_t child_pid;
     while ((child_pid = wait(NULL)) != -1) {
         // Continue waiting until all child processes have finished
     }
+
+    // Copy result back to the original matrix c
+    for (int i = 0; i < dim * dim; ++i) {
+        c[i] = result_matrix[i];
+    }
+
+    // Unmap the shared memory
+    munmap_checked(result_matrix, matrix_size);
 }
 
 /* Timing and Printing Results */
