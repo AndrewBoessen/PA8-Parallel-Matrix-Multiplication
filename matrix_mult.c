@@ -130,11 +130,11 @@ void multiply_parallel_processes(double *a, double *b, double *c, int dim, int n
     }
 
     // Parent process
+    printf("Parent row_start: %d\n", row_start);
     multiply_chunk(a, b, result_matrix, dim, row_start, dim - row_start);
-
+    
     // Wait for all child processes to finish
-    pid_t child_pid;
-    while ((child_pid = wait(NULL)) != -1) {
+    while (wait(NULL) != -1) {
         // Continue waiting until all child processes have finished
     }
 
@@ -142,7 +142,7 @@ void multiply_parallel_processes(double *a, double *b, double *c, int dim, int n
     for (int i = 0; i < dim * dim; ++i) {
         c[i] = result_matrix[i];
     }
-
+    
     // Unmap the shared memory
     munmap_checked(result_matrix, matrix_size);
 }

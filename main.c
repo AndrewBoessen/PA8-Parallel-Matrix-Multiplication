@@ -29,26 +29,28 @@ int main() {
     init_matrix(matrix_a, DIM);
     init_matrix(matrix_b, DIM);
 
-    puts("\nMatrix A");
-    print_matrix(matrix_a, DIM);
+    //puts("\nMatrix A");
+    //print_matrix(matrix_a, DIM);
 
-    puts("\nMatrix B");
-    print_matrix(matrix_b, DIM);
+    //puts("\nMatrix B");
+    //print_matrix(matrix_b, DIM);
 
     gettimeofday(&start, NULL);
     multiply_serial(matrix_a, matrix_b, matrix_c, DIM);
     gettimeofday(&end, NULL);
     print_elapsed_time(&start, &end, "Serial");
 
-    puts("\nResult");
+    //puts("\nResult");
+
+    //print_matrix(matrix_c, DIM);
+
     gettimeofday(&start, NULL);
-    print_matrix(matrix_c, DIM);
+    multiply_parallel_processes(matrix_a, matrix_b, matrix_d, DIM, NUM_WORKERS);
     gettimeofday(&end, NULL);
     print_elapsed_time(&start, &end, "Multiprocessing");
 
-    multiply_parallel_processes(matrix_a, matrix_b, matrix_d, DIM, NUM_WORKERS);
-    puts("\nResult: Multiprocessing");
-    print_matrix(matrix_d, DIM);
+    //puts("\nResult: Multiprocessing");
+    //print_matrix(matrix_d, DIM);
 
     print_verification(matrix_c, matrix_d, DIM, "Multiprocessing");
     return EXIT_SUCCESS;

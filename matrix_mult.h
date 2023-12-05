@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <sys/time.h>
 
-#define DIM 4
+#define DIM 1024
 #define NUM_WORKERS 4
 #define SUCCESS 0
 #define FAILURE -1
