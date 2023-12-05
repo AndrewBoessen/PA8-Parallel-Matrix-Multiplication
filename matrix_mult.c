@@ -20,6 +20,7 @@ void matmul(double *a, double *b, double * result, int start, int n, int m) {
 
     for (int i = start; i < n; i++) {
         for (int j = 0; j < m; j++) {
+            // Initialize result value to 0.0
             result[i * m + j] = 0.0;
             for (int k = 0; k < m; k++) {
                 result[i * m + j] += a[i * m + k] * b[k * m + j];
@@ -120,17 +121,16 @@ void multiply_parallel_processes(double *a, double *b, double *c, int dim, int n
     // Spawn child processes
     for (int i = 0; i < num_workers - 1; ++i) {
         pid_t pid = fork_checked();
-
+        
         if (pid == 0) {
             // Child process
-            row_start += chunk_size;
             multiply_chunk(a, b, result_matrix, dim, row_start, chunk_size);
             exit(EXIT_SUCCESS);
         }
+        row_start += chunk_size;
     }
 
     // Parent process
-    printf("Parent row_start: %d\n", row_start);
     multiply_chunk(a, b, result_matrix, dim, row_start, dim - row_start);
     
     // Wait for all child processes to finish
