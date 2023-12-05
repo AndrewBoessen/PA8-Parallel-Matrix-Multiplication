@@ -17,11 +17,11 @@ matrix_multiplication - Library for parallel matrix multiplication in C
 #include "matrix_multiplication.h"
 ```
 
-## DESCRIPTION
+## Description
 
 The `matrix_multiplication` library provides functions for parallel matrix multiplication in C. It includes implementations using parallel processes, parallel threads, and a serial approach. The library is designed to perform matrix multiplication efficiently, especially for large matrices.
 
-## FUNCTIONS
+## Functions
 
 ### `void multiply_parallel_processes(double *a, double *b, double *c, int dim, int num_workers);`
 
@@ -106,58 +106,67 @@ Runs matrix multiplication, measures the execution time, and optionally verifies
 - `num_workers`: Number of parallel processes or threads.
 - `verify`: Boolean flag indicating whether to verify the result.
 
-## EXAMPLE USAGE
+## Example Usage
 
 ```c
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <sys/time.h>
-#include "matrix_multiplication.h"
+
+#include "matrix_mult.h"
+
+typedef struct RunArgs {
+    multiply_function func;
+    double * product;
+    const int num_workers;
+    const char * const name;
+    const bool verify;
+} RunArgs;
+
+struct timeval start, end;
 
 int main() {
-    // Set the matrix dimension
-    int dim = DIM;
+    int size = DIM * DIM;
+    double * matrix_a = calloc(size, sizeof(double));
+    double * matrix_b = calloc(size, sizeof(double));
+    // Result matricies
+    double * matrix_c = calloc(size, sizeof(double));
+    double * matrix_d = calloc(size, sizeof(double));
+    double * matrix_e = calloc(size, sizeof(double));
+    // Init product matricies
+    init_matrix(matrix_a, DIM);
+    init_matrix(matrix_b, DIM);
 
-    // Set the number of worker processes or threads
-    int num_workers = NUM_WORKERS;
+    puts("Comparing Serial vs. Processes vs. Threads");
 
-    // Allocate memory for matrices A, B, and C
-    double *a = (double *)malloc(dim * dim * sizeof(double));
-    double *b = (double *)malloc(dim * dim * sizeof(double));
-    double *c = (double *)malloc(dim * dim * sizeof(double));
-    
-    // Initialize matrices A and B with random values
-    init_matrix(a, dim);
-    init_matrix(b, dim);
+    gettimeofday(&start, NULL);
+    multiply_serial(matrix_a, matrix_b, matrix_c, DIM, 1);
+    gettimeofday(&end, NULL);
+    print_elapsed_time(&start, &end, "Serial");
 
-    // Perform matrix multiplication using parallel processes
-    run_and_time(multiply_parallel_processes, a, b, c, NULL, dim, "Parallel Processes", num_workers, true);
+    // Processes
+    gettimeofday(&start, NULL);
+    multiply_parallel_processes(matrix_a, matrix_b, matrix_d, DIM, NUM_WORKERS);
+    gettimeofday(&end, NULL);
+    print_elapsed_time(&start, &end, "Multiprocessing");
 
-    // Print the result matrix C
-    printf("\nMatrix C (Parallel Processes):\n");
-    print_matrix(c, dim);
+    print_verification(matrix_c, matrix_d, DIM, "Multiprocessing");
 
-    // Optionally, perform matrix multiplication using parallel threads
-    // run_and_time(multiply_parallel_threads, a, b, c, NULL, dim, "Parallel Threads", num_workers, true);
+    // Threads
+    gettimeofday(&start, NULL);
+    multiply_parallel_threads(matrix_a, matrix_b, matrix_e, DIM, NUM_WORKERS);
+    gettimeofday(&end, NULL);
+    print_elapsed_time(&start, &end, "Threads");
 
-    // Optionally, perform matrix multiplication using a serial approach
-    // run_and_time(multiply_serial, a, b, c, NULL, dim, "Serial", num_workers, true);
+    print_verification(matrix_c, matrix_e, DIM, "Threads");
 
-    // Free allocated memory
-    free(a);
-    free(b);
-    free(c);
-
-    return 0;
+    return EXIT_SUCCESS;
 }
 ```
+![Example Output](https://github.com/AndrewBoessen/PA8-Parallel-Matrix-Multiplication/blob/main/assets/example_output.png)
 
-## SEE ALSO
-
-- [C Standard Library](https://en.cppreference.com/w/c/header)
-
-## AUTHOR
+## Author
 
 Andrew Boessen - boessena@bc.edu
 

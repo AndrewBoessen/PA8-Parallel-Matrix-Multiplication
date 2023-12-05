@@ -1,8 +1,9 @@
 /*
  * main.c
  * Driver for demonstration of parallelized matrix multiplication.
- * Author: Amittai Aviram - aviram@bc.edu
+ * Author: Andrew Boessen - boessena@bc.edu
  */
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,31 +35,20 @@ int main() {
 
     puts("Comparing Serial vs. Processes vs. Threads");
 
-    //puts("\nMatrix A");
-    //print_matrix(matrix_a, DIM);
-
-    //puts("\nMatrix B");
-    //print_matrix(matrix_b, DIM);
-
     gettimeofday(&start, NULL);
     multiply_serial(matrix_a, matrix_b, matrix_c, DIM, 1);
     gettimeofday(&end, NULL);
     print_elapsed_time(&start, &end, "Serial");
 
-    //puts("\nResult");
-
-    //print_matrix(matrix_c, DIM);
-
+    // Processes
     gettimeofday(&start, NULL);
     multiply_parallel_processes(matrix_a, matrix_b, matrix_d, DIM, NUM_WORKERS);
     gettimeofday(&end, NULL);
     print_elapsed_time(&start, &end, "Multiprocessing");
 
-    //puts("\nResult: Multiprocessing");
-    //print_matrix(matrix_d, DIM);
-
     print_verification(matrix_c, matrix_d, DIM, "Multiprocessing");
 
+    // Threads
     gettimeofday(&start, NULL);
     multiply_parallel_threads(matrix_a, matrix_b, matrix_e, DIM, NUM_WORKERS);
     gettimeofday(&end, NULL);
