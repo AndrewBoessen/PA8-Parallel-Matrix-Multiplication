@@ -2,7 +2,7 @@
 #include <sys/time.h>
 
 #define DIM 1024
-#define NUM_WORKERS 4
+#define NUM_WORKERS 8
 #define SUCCESS 0
 #define FAILURE -1
 
@@ -13,16 +13,18 @@ typedef struct {
     double * b;
     double * c;
     int dim;
-    int num_workers;
-    int chunk;
+    int row_start;
+    int chunk_size;
 } Args;
 
 /* Function forward declarations */
 void multiply_parallel_processes(double * a, double * b, double * c, int dim, int num_workers);
 
+void multiply_parallel_threads(double * a, double * b, double * c, int dim, int num_workers);
+
 void init_matrix(double * matrix, int dim);
 
-void multiply_serial(double * a, double * b, double * c, int dim);
+void multiply_serial(double * a, double * b, double * c, int dim, int num_workers);
 
 void print_matrix(double * matrix, int dim);
 

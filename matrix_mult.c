@@ -20,8 +20,6 @@ void matmul(double *a, double *b, double * result, int start, int n, int m) {
 
     for (int i = start; i < n; i++) {
         for (int j = 0; j < m; j++) {
-            // Initialize result value to 0.0
-            result[i * m + j] = 0.0;
             for (int k = 0; k < m; k++) {
                 result[i * m + j] += a[i * m + k] * b[k * m + j];
             }
@@ -68,7 +66,7 @@ void init_matrix(double * matrix, int dim) {
     }
 }
 
-void multiply_serial(double *a, double *b, double *c, int dim) {
+void multiply_serial(double *a, double *b, double *c, int dim, int num_workers) {
     // Assuming c is initialized to 0.0 using calloc
 
     for (int i = 0; i < dim; i++) {
@@ -145,6 +143,48 @@ void multiply_parallel_processes(double *a, double *b, double *c, int dim, int n
     
     // Unmap the shared memory
     munmap_checked(result_matrix, matrix_size);
+}
+
+/* Thread Based Implementation */
+void *task(void * arg) {
+    Args * args = (Args *) arg;
+    multiply_chunk(args->a, args->b, args->c, args->dim, args->row_start, args->chunk_size);
+    return NULL;
+}
+
+void multiply_parallel_threads(double *a, double *b, double *c, int dim, int num_workers) {
+    int num_threads = num_workers - 1;
+    pthread_t threads[num_threads];
+    Args arg_set[num_workers];
+
+    int chunk_size = dim / num_workers;
+    int row_start = 0;
+
+    // Initialize thread arguments
+    for (int i = 0; i < num_workers; ++i) {
+        arg_set[i].a = a;
+        arg_set[i].b = b;
+        arg_set[i].c = c;
+        arg_set[i].dim = dim;
+        arg_set[i].chunk_size = chunk_size;
+    }
+
+    // Create threads
+    for (int i = 0; i < num_threads; ++i) {
+        arg_set[i].row_start = row_start;
+        pthread_create(&threads[i], NULL, task, (void *)&arg_set[i]);
+        row_start += chunk_size;
+    }
+
+    // Main thread's task
+    arg_set[num_threads].row_start = row_start;
+    arg_set[num_threads].chunk_size = dim - row_start;
+    task((void *)&arg_set[num_threads]);
+
+    // Wait for all threads to finish
+    for (int i = 0; i < num_threads; ++i) {
+        pthread_join(threads[i], NULL);
+    }
 }
 
 /* Timing and Printing Results */
