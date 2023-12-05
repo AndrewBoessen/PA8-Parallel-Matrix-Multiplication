@@ -12,12 +12,7 @@ This project showcases the performance benefits of parallel computing through ma
 
 # Matrix Multiplication Library Manual
 
-## NAME
-
 matrix_multiplication - Library for parallel matrix multiplication in C
-
-## SYNOPSIS
-
 ```c
 #include "matrix_multiplication.h"
 ```
@@ -48,13 +43,6 @@ Performs matrix multiplication using parallel threads.
 - `dim`: Dimension of the matrices.
 - `num_workers`: Number of parallel threads to use.
 
-### `void init_matrix(double *matrix, int dim);`
-
-Initializes a matrix with random values.
-
-- `matrix`: Pointer to the matrix to be initialized.
-- `dim`: Dimension of the matrix.
-
 ### `void multiply_serial(double *a, double *b, double *c, int dim, int num_workers);`
 
 Performs matrix multiplication using a serial approach.
@@ -64,6 +52,13 @@ Performs matrix multiplication using a serial approach.
 - `c`: Pointer to the result matrix (C).
 - `dim`: Dimension of the matrices.
 - `num_workers`: Number of parallel processes or threads (not used in the serial version).
+
+### `void init_matrix(double *matrix, int dim);`
+
+Initializes a matrix with random values.
+
+- `matrix`: Pointer to the matrix to be initialized.
+- `dim`: Dimension of the matrix.
 
 ### `void print_matrix(double *matrix, int dim);`
 
