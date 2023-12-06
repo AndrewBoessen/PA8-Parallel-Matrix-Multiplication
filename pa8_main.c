@@ -28,7 +28,7 @@ int main() {
     RunArgs args[] = {
         {multiply_serial, NULL, 1, "serial", false},
         {multiply_parallel_processes, NULL, NUM_WORKERS, "parallel processes", true},
-        {multiply_parallel_processes, NULL, NUM_WORKERS, "parallel threads", true}
+        {multiply_parallel_threads, NULL, NUM_WORKERS, "parallel threads", true}
     };
     const int num_functions = sizeof(args) / sizeof(args[0]);
     for (int i = 0; i < num_functions; ++i) {
