@@ -1,8 +1,9 @@
 /*
  * main.c
  * Driver for demonstration of parallelized matrix multiplication.
- * Author: Amittai Aviram - aviram@bc.edu
+ * Author: Andrew Boessen - boessena@bc.edu
  */
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

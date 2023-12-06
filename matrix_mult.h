@@ -1,3 +1,7 @@
+/*
+ * Author: Andrew Boessen - boessena@bc.edu
+ */
+
 #include <stdbool.h>
 #include <sys/time.h>
 
