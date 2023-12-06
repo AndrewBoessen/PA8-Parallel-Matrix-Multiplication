@@ -204,7 +204,7 @@ struct timeval time_diff(struct timeval *start, struct timeval *end) {
 
 void print_elapsed_time(struct timeval *start, struct timeval *end, char * legend) {
     struct timeval elapsed = time_diff(start, end);
-    printf("%s: %ld second%s, %ld microsecond%s\n",
+    printf("Time elapsed for %s: %ld second%s, %ld microsecond%s\n",
            legend,
            (long)elapsed.tv_sec, (elapsed.tv_sec == 1) ? "" : "s",
            (long)elapsed.tv_usec, (elapsed.tv_usec == 1) ? "" : "s");
@@ -212,9 +212,40 @@ void print_elapsed_time(struct timeval *start, struct timeval *end, char * legen
 
 void print_verification(double *m1, double *m2, int dim, char * name) {
     int result = verify(m1, m2, dim);
-    if (result == SUCCESS) {
-        printf("%s: Verification Passed\n", name);
-    } else {
-        printf("%s: Verification Failed\n", name);
+    printf(
+        "Verification for %s: %s\n", 
+        name, 
+        result == SUCCESS ? "success" : "failed"
+    );
+}
+
+/* Run and Time */
+void run_and_time(
+    multiply_function multiply_matrices,
+    const double * const a,
+    const double * const b,
+    double * const c,
+    const double * const gold,
+    const int dim,
+    const char * const name,
+    const int num_workers,
+    const bool verify
+) {
+    struct timeval start, end;
+
+    printf(
+        "Algorithm: %s with %d worker%s\n", 
+        name, 
+        num_workers, num_workers == 1 ? "" : "s"
+    );
+
+    gettimeofday(&start, NULL);
+    multiply_matrices((double *) a, (double *) b, c, dim, num_workers);
+    gettimeofday(&end, NULL);
+
+    print_elapsed_time(&start, &end, (char *) name);
+
+    if (verify) {
+        print_verification((double *) gold, c, dim, (char *) name);
     }
 }
