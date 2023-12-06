@@ -15,7 +15,7 @@
 #include "matrix_mult.h"
 
 /* Helper Functions */
-void matmul(double *a, double *b, double * result, int start, int n, int m) {
+void matmul(const double * const a, const double * const b, double * const result, int start, int n, int m) {
     // General matrix multiplication for n x m matrix
 
     for (int i = start; i < n; i++) {
@@ -43,7 +43,7 @@ void print_matrix(double *matrix, int dim) {
     }
 }
 
-int verify(double *m1, double *m2, int dim) {
+int verify(const double * const m1, double *m2, int dim) {
     for (int i = 0; i < dim; ++i) {
         for (int j = 0; j < dim; ++j) {
             if (fabs(m1[i * dim + j] - m2[i * dim + j]) > 1e-9) {
@@ -66,7 +66,7 @@ void init_matrix(double * matrix, int dim) {
     }
 }
 
-void multiply_serial(double *a, double *b, double *c, int dim, int num_workers) {
+void multiply_serial(const double * const a, const double * const b, double * const c, const int dim, const int num_workers) {
     // Assuming c is initialized to 0.0 using calloc
 
     for (int i = 0; i < dim; i++) {
@@ -79,7 +79,7 @@ void multiply_serial(double *a, double *b, double *c, int dim, int num_workers) 
 }
 
 /* Process Based Parallel Implementation */
-void multiply_chunk(double *a, double *b, double *c, int dim, int row_start, int chunk_size) {
+void multiply_chunk(const double * const a, const double * const b, double * const c, int dim, int row_start, int chunk_size) {
     matmul(a, b, c, row_start, row_start + chunk_size, dim);
 }
 
@@ -107,7 +107,7 @@ pid_t fork_checked(void) {
     return pid;
 }
 
-void multiply_parallel_processes(double *a, double *b, double *c, int dim, int num_workers) {
+void multiply_parallel_processes(const double * const a, const double * const b, double * const c, const int dim, const int num_workers) {
     int chunk_size = dim / num_workers;
     int row_start = 0;
     size_t matrix_size = dim * dim * sizeof(double);
@@ -152,7 +152,7 @@ void *task(void * arg) {
     return NULL;
 }
 
-void multiply_parallel_threads(double *a, double *b, double *c, int dim, int num_workers) {
+void multiply_parallel_threads(const double * const a, const double * const b, double * const c, const int dim, const int num_workers) {
     int num_threads = num_workers - 1;
     pthread_t threads[num_threads];
     Args arg_set[num_workers];
@@ -162,8 +162,8 @@ void multiply_parallel_threads(double *a, double *b, double *c, int dim, int num
 
     // Initialize thread arguments
     for (int i = 0; i < num_workers; ++i) {
-        arg_set[i].a = a;
-        arg_set[i].b = b;
+        arg_set[i].a = (double *) a;
+        arg_set[i].b = (double *) b;
         arg_set[i].c = c;
         arg_set[i].dim = dim;
         arg_set[i].chunk_size = chunk_size;
@@ -202,7 +202,7 @@ struct timeval time_diff(struct timeval *start, struct timeval *end) {
     return result;
 }
 
-void print_elapsed_time(struct timeval *start, struct timeval *end, char * legend) {
+void print_elapsed_time(struct timeval *start, struct timeval *end, const char * const legend) {
     struct timeval elapsed = time_diff(start, end);
     printf("Time elapsed for %s: %ld second%s, %ld microsecond%s\n",
            legend,
@@ -210,7 +210,7 @@ void print_elapsed_time(struct timeval *start, struct timeval *end, char * legen
            (long)elapsed.tv_usec, (elapsed.tv_usec == 1) ? "" : "s");
 }
 
-void print_verification(double *m1, double *m2, int dim, char * name) {
+void print_verification(const double * const m1, double * const m2, const int dim, const char * const name) {
     int result = verify(m1, m2, dim);
     printf(
         "Verification for %s: %s\n", 
@@ -240,12 +240,12 @@ void run_and_time(
     );
 
     gettimeofday(&start, NULL);
-    multiply_matrices((double *) a, (double *) b, c, dim, num_workers);
+    multiply_matrices(a, b, c, dim, num_workers);
     gettimeofday(&end, NULL);
 
-    print_elapsed_time(&start, &end, (char *) name);
+    print_elapsed_time(&start, &end, name);
 
     if (verify) {
-        print_verification((double *) gold, c, dim, (char *) name);
+        print_verification(gold, c, dim, name);
     }
 }
