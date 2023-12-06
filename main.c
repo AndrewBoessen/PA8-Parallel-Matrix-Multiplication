@@ -1,9 +1,8 @@
 /*
  * main.c
  * Driver for demonstration of parallelized matrix multiplication.
- * Author: Andrew Boessen - boessena@bc.edu
+ * Author: Amittai Aviram - aviram@bc.edu
  */
-
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,43 +18,38 @@ typedef struct RunArgs {
     const bool verify;
 } RunArgs;
 
-struct timeval start, end;
 
 int main() {
     int size = DIM * DIM;
     double * matrix_a = calloc(size, sizeof(double));
     double * matrix_b = calloc(size, sizeof(double));
-    // Result matricies
-    double * matrix_c = calloc(size, sizeof(double));
-    double * matrix_d = calloc(size, sizeof(double));
-    double * matrix_e = calloc(size, sizeof(double));
-    // Init product matricies
     init_matrix(matrix_a, DIM);
     init_matrix(matrix_b, DIM);
-
-    puts("Comparing Serial vs. Processes vs. Threads");
-
-    gettimeofday(&start, NULL);
-    multiply_serial(matrix_a, matrix_b, matrix_c, DIM, 1);
-    gettimeofday(&end, NULL);
-    print_elapsed_time(&start, &end, "Serial");
-
-    // Processes
-    gettimeofday(&start, NULL);
-    multiply_parallel_processes(matrix_a, matrix_b, matrix_d, DIM, NUM_WORKERS);
-    gettimeofday(&end, NULL);
-    print_elapsed_time(&start, &end, "Multiprocessing");
-
-    print_verification(matrix_c, matrix_d, DIM, "Multiprocessing");
-
-    // Threads
-    gettimeofday(&start, NULL);
-    multiply_parallel_threads(matrix_a, matrix_b, matrix_e, DIM, NUM_WORKERS);
-    gettimeofday(&end, NULL);
-    print_elapsed_time(&start, &end, "Threads");
-
-    print_verification(matrix_c, matrix_e, DIM, "Threads");
-
+    RunArgs args[] = {
+        {multiply_serial, NULL, 1, "serial", false},
+        {multiply_parallel_processes, NULL, NUM_WORKERS, "parallel processes", true},
+        {multiply_parallel_threads, NULL, NUM_WORKERS, "parallel threads", true}
+    };
+    const int num_functions = sizeof(args) / sizeof(args[0]);
+    for (int i = 0; i < num_functions; ++i) {
+       args[i].product = calloc(size, sizeof(double));
+    }
+    for (int i = 0; i < num_functions; ++i) {
+        run_and_time(
+                args[i].func,
+                matrix_a,
+                matrix_b,
+                args[i].product,
+                args[0].product,
+                DIM,
+                args[i].name,
+                args[i].num_workers,
+                args[i].verify
+                );
+    }
+    for (int i = 0; i < num_functions; ++i) {
+        free(args[i].product);
+    }
     return EXIT_SUCCESS;
 }
 
